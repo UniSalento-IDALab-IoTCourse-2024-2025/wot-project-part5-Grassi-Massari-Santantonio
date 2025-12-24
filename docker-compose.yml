@@ -1,6 +1,6 @@
 services:
   shop-sba:
-      image: openjdk:23-jdk
+      image: eclipse-temurin:21-jdk
       container_name: shop-sba
       ports:
         - 8083:8080
@@ -11,6 +11,8 @@ services:
         - shopdb
       networks:
         - my-net
+      extra_hosts:
+      - "host.docker.internal:host-gateway"
       volumes:
         - ./build/libs/fastgo_shop-0.0.1-SNAPSHOT.jar:/app/app.jar
       working_dir: /app
