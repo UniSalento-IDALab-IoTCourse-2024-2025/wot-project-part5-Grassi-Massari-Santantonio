@@ -29,7 +29,7 @@ public class OrderRestController {
         logger.info("Cliente: {} | ShopID: {}", orderDto.getUsernameClient(), orderDto.getShopId());
 
         try {
-            // Delega tutta la logica (DB + MQTT) al Service
+            
             OrderDto createdOrder = orderService.processAndCreateOrder(orderDto);
 
             logger.info("<<< ORDINE COMPLETATO CON SUCCESSO. ID: {}", createdOrder.getId());
@@ -57,7 +57,7 @@ public class OrderRestController {
             
             logger.info("Richiesta ordini per utente estratto da Token: {}", currentUserId);
 
-            // 3. Chiama il service usando l'ID sicuro
+   
             List<OrderDto> orders = orderService.getOrdersByClientId(currentUserId);
             
             return ResponseEntity.ok(orders);
@@ -71,12 +71,12 @@ public class OrderRestController {
 @PatchMapping("/status")
     public ResponseEntity<?> updateOrderStatus(
             @RequestHeader("Authorization") String bearerToken,
-            @RequestBody OrderDto statusUpdateDto) { // Ci aspettiamo { "id": "...", "orderStatus": "ACCEPTED" }
+            @RequestBody OrderDto statusUpdateDto) { 
         
         try {
             String token = bearerToken.replace("Bearer ", "");
             
-            // Verifica token generica (in produzione dovresti verificare che sia un SHOPKEEPER)
+    
             if (!orderService.isTokenValidShop(token)) {
                 return ResponseEntity.status(401).build();
             }

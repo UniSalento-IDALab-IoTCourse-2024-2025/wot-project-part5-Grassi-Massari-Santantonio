@@ -61,6 +61,7 @@ public class RestaurantService {
             restaurantToUpdate.setRestaurantAddress(restaurantDto.getRestaurantAddress());
             restaurantToUpdate.setRestaurantPostalCode(restaurantDto.getRestaurantPostalCode());
             restaurantToUpdate.setRestaurantVatNumber(restaurantDto.getRestaurantVatNumber());
+            restaurantToUpdate.setPicture(restaurantDto.getPicture());
             
             try {
                 double longitude = Double.parseDouble(restaurantDto.getLongitude());
@@ -119,6 +120,7 @@ public class RestaurantService {
         restaurant.setRestaurantPostalCode(restaurantDto.getRestaurantPostalCode());
         restaurant.setRestaurantVatNumber(restaurantDto.getRestaurantVatNumber());
         restaurant.setRestaurantPhoneNumber(restaurantDto.getRestaurantPhoneNumber());
+        restaurant.setPicture(restaurantDto.getPicture());
 
         try {
             double longitude = Double.parseDouble(restaurantDto.getLongitude());
@@ -142,6 +144,7 @@ public class RestaurantService {
         dto.setRestaurantPostalCode(entity.getRestaurantPostalCode());
         dto.setRestaurantVatNumber(entity.getRestaurantVatNumber());
         dto.setRestaurantPhoneNumber(entity.getRestaurantPhoneNumber());
+        dto.setPicture(entity.getPicture());
         
         if (entity.getLocation() != null) {
             dto.setLongitude(String.valueOf(entity.getLocation().getX()));

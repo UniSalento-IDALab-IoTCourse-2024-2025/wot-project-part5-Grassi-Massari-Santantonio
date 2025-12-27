@@ -3,6 +3,7 @@ package com.fastgo.shop.fastgo_shop.service;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fastgo.shop.fastgo_shop.component.OrderPublisher;
 import com.fastgo.shop.fastgo_shop.config.MqttConfig;
 import com.fastgo.shop.fastgo_shop.domain.Order;
 import com.fastgo.shop.fastgo_shop.dto.OrderDto;
@@ -36,39 +37,38 @@ public class OrderService {
     @Autowired
     private JwtUtilities jwtUtilities;
 
-    /**
-     * Gestisce l'intero flusso di creazione ordine:
-     * 1. Mappa DTO -> Entity
-     * 2. Salva su MongoDB (generando ID)
-     * 3. Pubblica su MQTT (usando l'ID generato)
-     * 4. Ritorna il DTO aggiornato
-     */
+    @Autowired
+    private OrderPublisher orderPublisher;
+
+   
     public OrderDto processAndCreateOrder(OrderDto orderDto) {
         try {
-            // 1. Mappatura
+            
             Order orderEntity = toEntity(orderDto);
             
-            // Imposta stato iniziale se nullo
+            
             if (orderEntity.getOrderStatus() == null) {
                 orderEntity.setOrderStatus("PENDING");
             }
 
-            // 2. Salvataggio DB (MongoDB genera l'ID qui)
+            
             Order savedOrder = orderRepository.save(orderEntity);
             logger.info("Ordine salvato su DB con ID: {}", savedOrder.getId());
 
-            // Riconvertiamo in DTO per avere l'ID generato e inviarlo via MQTT
+            
             OrderDto savedDto = toDto(savedOrder);
 
-            // 3. Invio MQTT
+            
             String orderJson = objectMapper.writeValueAsString(savedDto);
             
             // Topic specifico per l'ordine: shop/{shopId}/{orderId}
-            // Questo permette persistenza granulare e QoS 2
+            
             String topic = "shop/" + savedDto.getShopId() + "/" + savedDto.getId();
             
             logger.info("Pubblicazione MQTT su topic: {}", topic);
             mqttGateway.sendToMqtt(orderJson, topic);
+
+         
 
             return savedDto;
 
@@ -90,33 +90,74 @@ public class OrderService {
 
 
     public OrderDto updateOrderStatus(String orderId, String newStatus) throws Exception {
-        // 1. Recupera l'ordine
+        
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Ordine non trovato"));
 
-        // 2. Aggiorna lo stato
+        
         order.setOrderStatus(newStatus);
         
-        // 3. Salva su DB
+        
         Order savedOrder = orderRepository.save(order);
         logger.info("Stato ordine {} aggiornato a {}", orderId, newStatus);
 
-        // 4. Converti in DTO
+        
         OrderDto savedDto = toDto(savedOrder);
 
-        // 5. PUBBLICA AGGIORNAMENTO SU MQTT (Cruciale per il real-time)
-        // Usiamo lo stesso topic specifico: shop/{shopId}/{orderId}
+        //  AGGIORNAMENTO SU MQTT 
+        //  topic specifico: shop/{shopId}/{orderId}
         String orderJson = objectMapper.writeValueAsString(savedDto);
         String topic = "shop/" + savedDto.getShopId() + "/" + savedDto.getId();
         
         logger.info("Invio aggiornamento stato MQTT su: {}", topic);
         mqttGateway.sendToMqtt(orderJson, topic);
 
+        if("CONFIRMED".equalsIgnoreCase(newStatus) || "ACCEPTED".equalsIgnoreCase(newStatus)) {
+            // Invia ordine a RabbitMQ per il rider
+           try {
+                orderPublisher.sendOrderToRider(savedDto);
+            } catch (Exception e) {
+               
+                logger.error("Errore invio RabbitMQ", e);
+            }
+
+        }
         return savedDto;
     }
 
-    // --- HELPER MAPPING FUNCTIONS ---
 
+    public boolean assignRiderToOrder(String orderId, String riderId, String riderName) throws Exception {
+        Optional<Order> orderOpt = orderRepository.findById(orderId);
+        
+        if (orderOpt.isPresent()) {
+            Order order = orderOpt.get();
+            
+            
+            if (order.getRiderId() != null && !order.getRiderId().isEmpty()) {
+                logger.warn("Ordine {} già assegnato a {}", orderId, order.getRiderId());
+                return false; 
+            }
+
+            order.setRiderId(riderId);
+            order.setRiderName(riderName); 
+            order.setOrderStatus("DELIVER"); 
+            
+            orderRepository.save(order);
+            
+            String orderJson = objectMapper.writeValueAsString(toDto(order));
+            String topic = "shop/" + order.getShopId() + "/" + order.getId();
+        
+            logger.info("Invio aggiornamento stato MQTT su: {}", topic);
+            mqttGateway.sendToMqtt(orderJson, topic);
+           
+            
+            return true;
+        }
+        return false;
+    }
+
+
+   
     public Order toEntity(OrderDto dto) {
         if (dto == null) return null;
 
@@ -156,6 +197,9 @@ public class OrderService {
                 .collect(Collectors.toList());
             order.setOrderDetails(details);
         }
+
+        order.setRiderId(dto.getRiderId());
+        order.setRiderName(dto.getRiderName());
 
         return order;
     }
@@ -202,6 +246,9 @@ public class OrderService {
             dto.setOrderDetails(details);
         }
 
+        dto.setRiderId(entity.getRiderId());
+        dto.setRiderName(entity.getRiderName());
+        
         return dto;
     }
 

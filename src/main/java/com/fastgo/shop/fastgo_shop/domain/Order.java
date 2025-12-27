@@ -19,6 +19,8 @@ public class Order {
     private String orderDate;
     private String orderStatus;
     private double totalPrice;
+    private String riderId;
+    private String riderName;
 
     // --- Getters e Setters ---
     public String getId() { return id; }
@@ -43,6 +45,10 @@ public class Order {
     public void setOrderStatus(String orderStatus) { this.orderStatus = orderStatus; }
     public double getTotalPrice() { return totalPrice; }
     public void setTotalPrice(double totalPrice) { this.totalPrice = totalPrice; }
+    public String getRiderId() { return riderId; }
+    public void setRiderId(String riderId) { this.riderId = riderId; }
+    public String getRiderName() { return riderName; }
+    public void setRiderName(String riderName) { this.riderName = riderName; }
 
     // --- Classi Interne per il Dominio ---
     

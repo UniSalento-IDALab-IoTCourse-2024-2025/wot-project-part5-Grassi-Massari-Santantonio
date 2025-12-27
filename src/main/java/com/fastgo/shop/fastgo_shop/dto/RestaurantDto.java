@@ -14,6 +14,7 @@ public class RestaurantDto {
     private String latitude;
     private String longitude;
     private String restaurantPhoneNumber;
+    private String pictureUrl;
 
     public RestaurantDto() {
     }
@@ -86,4 +87,12 @@ public class RestaurantDto {
     public void setRestaurantPhoneNumber(String restaurantPhoneNumber) {
         this.restaurantPhoneNumber = restaurantPhoneNumber;
     }
+
+     public String getPicture() {
+        return pictureUrl;
+    }
+    public void setPicture(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
+
 }

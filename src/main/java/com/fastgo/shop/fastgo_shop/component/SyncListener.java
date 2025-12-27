@@ -24,7 +24,7 @@ public class SyncListener {
     @RabbitListener(queues = "shop.sync.request.queue")
     public String handleRiderSyncRequest(SyncShopDto syncShopDto) {
         
-        //stampa il JSON (toString() del DTO)
+      
         log.info("Richiesta di sincronizzazione ricevuta per: {}", syncShopDto.toString());
 
         if (!syncService.isTokenValidForShopkeeper(syncShopDto.getToken())) {

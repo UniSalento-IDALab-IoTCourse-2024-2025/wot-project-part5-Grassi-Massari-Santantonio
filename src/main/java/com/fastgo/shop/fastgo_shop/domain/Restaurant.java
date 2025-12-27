@@ -26,6 +26,8 @@ public class Restaurant {
 
     private String restaurantPhoneNumber;
 
+    private String pictureUrl;
+
 
 
     public String getId() {
@@ -93,4 +95,10 @@ public class Restaurant {
         this.restaurantPhoneNumber = restaurantPhoneNumber;
     }
 
+      public String getPicture() {
+        return pictureUrl;
+    }
+    public void setPicture(String pictureUrl) {
+        this.pictureUrl = pictureUrl;
+    }
 }
