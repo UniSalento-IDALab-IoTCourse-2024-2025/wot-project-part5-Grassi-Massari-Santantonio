@@ -97,5 +97,11 @@ public class JwtUtilities {
         String role = (String) claims.get("role");
         return Role.USER.toString().equals(role) && !isTokenExpired(token);
     }
+
+    public boolean hasRoleRider(String token) {
+        Claims claims = extractAllClaims(token);
+        String role = (String) claims.get("role");
+        return Role.RIDER.toString().equals(role) && !isTokenExpired(token);
+    }
 }
 

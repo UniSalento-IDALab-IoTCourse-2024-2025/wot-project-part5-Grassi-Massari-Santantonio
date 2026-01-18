@@ -100,4 +100,6 @@ public class RabbitMqConfig {
                 .to(orderExchange()) 
                 .with(UPDATE_STATUS_ROUTING_KEY);
     }
+
+
 }

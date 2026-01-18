@@ -264,4 +264,8 @@ public class OrderService {
     public boolean isTokenValidShop(String token){
         return jwtUtilities.hasRoleShop(token);
     }
+
+    public boolean isTokenValidRider(String token){
+        return jwtUtilities.hasRoleRider(token);
+    }
 }
